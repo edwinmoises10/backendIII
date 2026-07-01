@@ -4,6 +4,7 @@ import usersRouter from "./routes/users.router.js";
 import storesRouter from "./routes/stores.router.js";
 import ordersRouter from "./routes/orders.router.js";
 import deliveriesRouter from "./routes/deliveries.router.js";
+import mockUserRouter from "./routes/mock.router.js"
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use("/api/users", usersRouter);
 app.use("/api/stores", storesRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/deliveries", deliveriesRouter);
+app.use('api/mock',mockUserRouter)
 
 app.use((req, res) => {
   res.status(404).json({

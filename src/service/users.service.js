@@ -1,5 +1,5 @@
 
-import userRepository from "../repository/user.repository";
+import userRepository from "../repository/user.repository.js";
 
 
 export const userService = async () => {
