@@ -1,12 +1,14 @@
 import { Router } from "express";
-import { generateUserMock } from "../mocks/users.mock.js";
+import {
+  populateMocksController,
+  generateUsersMockController,
+  generateDriversMockController
+} from "../controllers/mocks.controllers.js";
+
 const router = Router();
-router.get('/mockingusers', (req, res) => {
-    const users = generateUserMock(50)
-    res.status(200).json({
-        status: 'success',
-        payload: users
-    })
-})
+
+router.post("/populate", populateMocksController);
+router.post("/users", generateUsersMockController);
+router.post("/drivers", generateDriversMockController);
 
 export default router;

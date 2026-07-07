@@ -1,7 +1,8 @@
 export const USER_ROLES = Object.freeze({
   ADMIN: "admin",
   CUSTOMER: "customer",
-  STORE: "store"
+  STORE: "store",
+  DRIVER: "driver"
 });
 
 export const ORDER_STATUS = Object.freeze({

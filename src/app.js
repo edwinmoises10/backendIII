@@ -5,7 +5,7 @@ import storesRouter from "./routes/stores.router.js";
 import ordersRouter from "./routes/orders.router.js";
 import deliveriesRouter from "./routes/deliveries.router.js";
 import productsRouter from "./routes/products.router.js";
-import mockUserRouter from "./routes/mock.router.js";
+import mocksRouter from "./routes/mock.router.js";
 
 const app = express();
 
@@ -25,7 +25,7 @@ app.use("/api/stores", storesRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/deliveries", deliveriesRouter);
 app.use("/api/products", productsRouter);
-app.use("/api/mock", mockUserRouter);
+app.use("/api/mocks", mocksRouter);
 
 app.use((req, res) => {
   res.status(404).json({ status: "error", message: "Ruta no encontrada" });

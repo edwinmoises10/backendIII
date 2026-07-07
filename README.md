@@ -72,6 +72,16 @@ npm start
 | PUT    | `/api/deliveries/:did/status` | Actualizar estado de entrega    |
 | DELETE | `/api/deliveries/:did`      | Eliminar entrega                  |
 
+### Endpoints de mocking (seed de datos)
+
+| Método | Ruta                       | Body (JSON, opcional)                                 | Descripción                              |
+|--------|----------------------------|-------------------------------------------------------|------------------------------------------|
+| POST   | `/api/mocks/populate`      | `{ "users": 10, "drivers": 5, "stores": 3, "products": 15, "orders": 10, "deliveries": 10 }` | Pobla toda la base de datos en orden    |
+| POST   | `/api/mocks/users`         | `?count=10`                                           | Genera y guarda N usuarios              |
+| POST   | `/api/mocks/drivers`       | `?count=5`                                            | Genera y guarda N repartidores          |
+
+> **Nota:** `POST /api/mocks/populate` inserta las entidades en el orden correcto: primero usuarios y repartidores, luego comercios (que necesitan un owner), luego productos y pedidos, y finalmente entregas (que referencian pedidos). Todos los datos se persisten en MongoDB.
+
 ---
 
 ## Arquitectura por capas
