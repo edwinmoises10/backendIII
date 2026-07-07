@@ -101,18 +101,30 @@ src/
 ├── service/                # Lógica de negocio
 ├── controllers/            # Manejo de req/res HTTP
 ├── routes/                 # Definición de rutas (solo conectan path con controller)
-└── utils/
-    ├── apiResponse.js      # Helpers de respuesta y creación de errores
-    └── errorDictionary.js  # Diccionario centralizado de errores
+├── middlewares/
+│   └── error.middleware.js # Middleware global de errores de Express
+├── mocks/                  # Generadores de datos falsos con faker
+├── utils/
+│   ├── CustomError.js      # Clase de error tipado
+│   ├── apiResponse.js      # Helpers de respuesta y createError()
+│   └── errorDictionary.js  # Diccionario centralizado de errores
+└── tests/
+    ├── health.test.js
+    ├── mocks.validation.test.js
+    └── error.middleware.test.js
 ```
 
 ### Flujo de dependencias
 
 ```
 Router → Controller → Service → Repository → Model
+                ↓ (en caso de error)
+            next(error)
+                ↓
+        errorMiddleware (app.js)
 ```
 
-Ninguna capa conoce los detalles de la capa siguiente a la suya.
+Ningún controlador contiene lógica de manejo de errores — todos delegan a `next(error)`.
 
 ---
 
@@ -128,10 +140,11 @@ Esta separación permite testear la lógica de negocio de forma aislada (mockean
 
 ## Gestión de errores
 
-Los errores siguen un flujo uniforme en todas las entidades:
+El sistema usa una clase `CustomError` que encapsula `code`, `statusCode` y `message`. El flujo es:
 
-1. El **Service** lanza errores tipados con `createError("CODIGO")` usando el diccionario centralizado.
-2. El **Controller** captura el error y responde con `errorResponse()`, incluyendo el `statusCode` del diccionario y el código de error para el cliente.
+1. El **Service** lanza `createError("CODIGO")` — devuelve una instancia de `CustomError` con los datos del diccionario.
+2. El **Controller** solo llama `next(error)` — no tiene lógica de manejo de errores propia.
+3. El **middleware global** (`errorMiddleware`) captura el error, identifica su tipo y responde con el formato estándar. También maneja errores de Mongoose (CastError, ValidationError) de forma centralizada.
 
 ```json
 {
@@ -140,3 +153,17 @@ Los errores siguen un flujo uniforme en todas las entidades:
   "message": "Producto no encontrado"
 }
 ```
+
+## Tests
+
+Los tests no requieren conexión a MongoDB (validan la capa de routing y middleware):
+
+```bash
+npm test
+```
+
+| Archivo | Qué prueba |
+|---------|------------|
+| `health.test.js` | Endpoints `/` y `/health` responden 200; rutas inexistentes devuelven 404 |
+| `mocks.validation.test.js` | `POST /api/mocks/users?count=0` y valores inválidos devuelven 400 con `VALIDATION_ERROR` |
+| `error.middleware.test.js` | Todas las respuestas de error incluyen `status`, `error` y `message` |
