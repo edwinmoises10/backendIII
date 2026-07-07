@@ -1,6 +1,7 @@
 import orderRepository from "../repository/order.repository.js";
 import userRepository from "../repository/user.repository.js";
 import storeRepository from "../repository/store.repository.js";
+import { createError } from "../utils/apiResponse.js";
 
 export const ordersService = async () => {
   return await orderRepository.allOrders();
@@ -8,42 +9,26 @@ export const ordersService = async () => {
 
 export const orderByIdService = async (id) => {
   const order = await orderRepository.orderById(id);
-  if (!order) {
-    const error = new Error("Pedido no encontrado");
-    error.statusCode = 404;
-    throw error;
-  }
+  if (!order) throw createError("ORDER_NOT_FOUND");
   return order;
 };
 
 export const createOrderService = async (body) => {
-  const { customer, store, items, deliveryAddress, priority } = body;
+  const { customer, store, items, deliveryAddress } = body;
 
   if (!customer || !store || !items || !deliveryAddress) {
-    const error = new Error("Faltan datos obligatorios");
-    error.statusCode = 400;
-    throw error;
+    throw createError("ORDER_VALIDATION_ERROR");
   }
 
   if (!Array.isArray(items) || items.length === 0) {
-    const error = new Error("El pedido debe tener al menos un producto");
-    error.statusCode = 400;
-    throw error;
+    throw createError("ORDER_VALIDATION_ERROR", "El pedido debe tener al menos un producto");
   }
 
   const customerFound = await userRepository.userById(customer);
-  if (!customerFound) {
-    const error = new Error("Usuario no encontrado");
-    error.statusCode = 404;
-    throw error;
-  }
+  if (!customerFound) throw createError("USER_NOT_FOUND");
 
   const storeFound = await storeRepository.storeById(store);
-  if (!storeFound) {
-    const error = new Error("Comercio no encontrado");
-    error.statusCode = 404;
-    throw error;
-  }
+  if (!storeFound) throw createError("STORE_NOT_FOUND");
 
   const total = items.reduce(
     (accumulator, item) => accumulator + item.price * item.quantity,
@@ -55,7 +40,7 @@ export const createOrderService = async (body) => {
     store,
     items,
     deliveryAddress,
-    priority,
+    priority: body.priority,
     total
   });
 
@@ -64,24 +49,14 @@ export const createOrderService = async (body) => {
 
 export const updateOrderStatusService = async (id, status) => {
   const order = await orderRepository.orderById(id);
-  if (!order) {
-    const error = new Error("Pedido no encontrado");
-    error.statusCode = 404;
-    throw error;
-  }
-
+  if (!order) throw createError("ORDER_NOT_FOUND");
   const updatedOrder = await orderRepository.updateOrderStatus(id, status);
   return updatedOrder;
 };
 
 export const deleteByIdService = async (id) => {
   const order = await orderRepository.orderById(id);
-  if (!order) {
-    const error = new Error("Pedido no encontrado");
-    error.statusCode = 404;
-    throw error;
-  }
-
+  if (!order) throw createError("ORDER_NOT_FOUND");
   const deletedOrder = await orderRepository.deleteById(id);
   return deletedOrder;
 };

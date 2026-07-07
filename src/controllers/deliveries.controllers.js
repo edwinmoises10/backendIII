@@ -5,48 +5,59 @@ import {
   updateDeliveryStatusService,
   deleteByIdService
 } from "../service/deliveries.service.js";
+import { successResponse, errorResponse } from "../utils/apiResponse.js";
+import { ERROR_DICTIONARY } from "../utils/errorDictionary.js";
+
+const handleError = (res, error) => {
+  const definition = ERROR_DICTIONARY[error.code] || ERROR_DICTIONARY.INTERNAL_SERVER_ERROR;
+  return errorResponse(res, {
+    statusCode: definition.statusCode,
+    error: error.code || "INTERNAL_SERVER_ERROR",
+    message: error.message
+  });
+};
 
 export const deliveriesControllers = async (req, res) => {
   try {
     const deliveries = await deliveriesService();
-    res.json({ status: "success", payload: deliveries });
+    return successResponse(res, { message: "Lista de Entregas", payload: deliveries });
   } catch (error) {
-    res.status(error.statusCode || 500).json({ status: "error", message: error.message });
+    return handleError(res, error);
   }
 };
 
 export const deliveryByIdControllers = async (req, res) => {
   try {
     const delivery = await deliveryByIdService(req.params.did);
-    res.json({ status: "success", payload: delivery });
+    return successResponse(res, { message: "Entrega obtenida por ID", payload: delivery });
   } catch (error) {
-    res.status(error.statusCode || 400).json({ status: "error", message: error.message });
+    return handleError(res, error);
   }
 };
 
 export const createDeliveryControllers = async (req, res) => {
   try {
     const newDelivery = await createDeliveryService(req.body);
-    res.status(201).json({ status: "success", payload: newDelivery });
+    return successResponse(res, { statusCode: 201, message: "Entrega creada correctamente", payload: newDelivery });
   } catch (error) {
-    res.status(error.statusCode || 400).json({ status: "error", message: error.message });
+    return handleError(res, error);
   }
 };
 
 export const deliveryStatusUpdateControllers = async (req, res) => {
   try {
     const updatedDelivery = await updateDeliveryStatusService(req.params.did, req.body.status);
-    res.json({ status: "success", payload: updatedDelivery });
+    return successResponse(res, { message: "Estado de entrega actualizado", payload: updatedDelivery });
   } catch (error) {
-    res.status(error.statusCode || 400).json({ status: "error", message: error.message });
+    return handleError(res, error);
   }
 };
 
 export const deleteByIdControllers = async (req, res) => {
   try {
     const deletedDelivery = await deleteByIdService(req.params.did);
-    res.json({ status: "success", payload: deletedDelivery });
+    return successResponse(res, { message: "Entrega eliminada", payload: deletedDelivery });
   } catch (error) {
-    res.status(error.statusCode || 400).json({ status: "error", message: error.message });
+    return handleError(res, error);
   }
 };

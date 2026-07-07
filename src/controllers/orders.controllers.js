@@ -5,48 +5,59 @@ import {
   updateOrderStatusService,
   deleteByIdService
 } from "../service/orders.service.js";
+import { successResponse, errorResponse } from "../utils/apiResponse.js";
+import { ERROR_DICTIONARY } from "../utils/errorDictionary.js";
+
+const handleError = (res, error) => {
+  const definition = ERROR_DICTIONARY[error.code] || ERROR_DICTIONARY.INTERNAL_SERVER_ERROR;
+  return errorResponse(res, {
+    statusCode: definition.statusCode,
+    error: error.code || "INTERNAL_SERVER_ERROR",
+    message: error.message
+  });
+};
 
 export const ordersControllers = async (req, res) => {
   try {
     const orders = await ordersService();
-    res.json({ status: "success", payload: orders });
+    return successResponse(res, { message: "Lista de Pedidos", payload: orders });
   } catch (error) {
-    res.status(error.statusCode || 500).json({ status: "error", message: error.message });
+    return handleError(res, error);
   }
 };
 
 export const orderByIdControllers = async (req, res) => {
   try {
     const order = await orderByIdService(req.params.oid);
-    res.json({ status: "success", payload: order });
+    return successResponse(res, { message: "Pedido obtenido por ID", payload: order });
   } catch (error) {
-    res.status(error.statusCode || 400).json({ status: "error", message: error.message });
+    return handleError(res, error);
   }
 };
 
 export const createOrderControllers = async (req, res) => {
   try {
     const newOrder = await createOrderService(req.body);
-    res.status(201).json({ status: "success", payload: newOrder });
+    return successResponse(res, { statusCode: 201, message: "Pedido creado correctamente", payload: newOrder });
   } catch (error) {
-    res.status(error.statusCode || 400).json({ status: "error", message: error.message });
+    return handleError(res, error);
   }
 };
 
 export const orderStatusUpdateControllers = async (req, res) => {
   try {
     const updatedOrder = await updateOrderStatusService(req.params.oid, req.body.status);
-    res.json({ status: "success", payload: updatedOrder });
+    return successResponse(res, { message: "Estado del pedido actualizado", payload: updatedOrder });
   } catch (error) {
-    res.status(error.statusCode || 400).json({ status: "error", message: error.message });
+    return handleError(res, error);
   }
 };
 
 export const deleteByIdControllers = async (req, res) => {
   try {
     const deletedOrder = await deleteByIdService(req.params.oid);
-    res.json({ status: "success", payload: deletedOrder });
+    return successResponse(res, { message: "Pedido eliminado", payload: deletedOrder });
   } catch (error) {
-    res.status(error.statusCode || 400).json({ status: "error", message: error.message });
+    return handleError(res, error);
   }
 };
