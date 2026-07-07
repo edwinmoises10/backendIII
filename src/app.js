@@ -4,7 +4,8 @@ import usersRouter from "./routes/users.router.js";
 import storesRouter from "./routes/stores.router.js";
 import ordersRouter from "./routes/orders.router.js";
 import deliveriesRouter from "./routes/deliveries.router.js";
-import mockUserRouter from "./routes/mock.router.js"
+import productsRouter from "./routes/products.router.js";
+import mockUserRouter from "./routes/mock.router.js";
 
 const app = express();
 
@@ -12,30 +13,22 @@ app.use(cors());
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.json({
-    status: "success",
-    message: "ShipNow API"
-  });
+  res.json({ status: "success", message: "ShipNow API" });
 });
 
 app.get("/health", (req, res) => {
-  res.json({
-    status: "success",
-    message: "API funcionando"
-  });
+  res.json({ status: "success", message: "API funcionando" });
 });
 
 app.use("/api/users", usersRouter);
 app.use("/api/stores", storesRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/deliveries", deliveriesRouter);
-app.use('api/mock',mockUserRouter)
+app.use("/api/products", productsRouter);
+app.use("/api/mock", mockUserRouter);
 
 app.use((req, res) => {
-  res.status(404).json({
-    status: "error",
-    message: "Ruta no encontrada"
-  });
+  res.status(404).json({ status: "error", message: "Ruta no encontrada" });
 });
 
 export default app;

@@ -2,6 +2,7 @@ import deliveryRepository from "../repository/delivery.repository.js";
 import orderRepository from "../repository/order.repository.js";
 import userRepository from "../repository/user.repository.js";
 import { createError } from "../utils/apiResponse.js";
+import { ORDER_STATUS } from "../constants/index.js";
 
 export const deliveriesService = async () => {
   return await deliveryRepository.allDeliveries();
@@ -26,14 +27,7 @@ export const createDeliveryService = async (body) => {
     if (!driverFound) throw createError("DRIVER_NOT_FOUND");
   }
 
-  const newDelivery = await deliveryRepository.createDelivery({
-    order,
-    driver,
-    status,
-    priority
-  });
-
-  return newDelivery;
+  return await deliveryRepository.createDelivery({ order, driver, status, priority });
 };
 
 export const updateDeliveryStatusService = async (id, status) => {
@@ -41,20 +35,14 @@ export const updateDeliveryStatusService = async (id, status) => {
   if (!delivery) throw createError("DELIVERY_NOT_FOUND");
 
   const update = { status };
+  if (status === ORDER_STATUS.ASSIGNED) update.assignedAt = new Date();
+  if (status === ORDER_STATUS.DELIVERED) update.deliveredAt = new Date();
 
-  if (status === "assigned") {
-    update.assignedAt = new Date();
-  } else if (status === "delivered") {
-    update.deliveredAt = new Date();
-  }
-
-  const updatedDelivery = await deliveryRepository.updateDeliveryStatus(id, update);
-  return updatedDelivery;
+  return await deliveryRepository.updateDeliveryStatus(id, update);
 };
 
 export const deleteByIdService = async (id) => {
   const delivery = await deliveryRepository.deliveryById(id);
   if (!delivery) throw createError("DELIVERY_NOT_FOUND");
-  const deletedDelivery = await deliveryRepository.deleteById(id);
-  return deletedDelivery;
+  return await deliveryRepository.deleteById(id);
 };

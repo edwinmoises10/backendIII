@@ -1,23 +1,13 @@
 import mongoose from "mongoose";
+import { ORDER_STATUS, PRIORITY } from "../constants/index.js";
 
 const orderItemSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true
-    },
-    quantity: {
-      type: Number,
-      required: true
-    },
-    price: {
-      type: Number,
-      required: true
-    }
+    name: { type: String, required: true },
+    quantity: { type: Number, required: true },
+    price: { type: Number, required: true }
   },
-  {
-    _id: false
-  }
+  { _id: false }
 );
 
 const orderSchema = new mongoose.Schema(
@@ -32,39 +22,23 @@ const orderSchema = new mongoose.Schema(
       ref: "Store",
       required: true
     },
-    items: {
-      type: [orderItemSchema],
-      required: true
-    },
-    deliveryAddress: {
-      type: String,
-      required: true
-    },
-    total: {
-      type: Number,
-      required: true
-    },
+    items: { type: [orderItemSchema], required: true },
+    deliveryAddress: { type: String, required: true },
+    total: { type: Number, required: true },
     status: {
       type: String,
-      enum: ["created", "assigned", "picked_up", "in_transit", "delivered", "cancelled"],
-      default: "created"
+      enum: Object.values(ORDER_STATUS),
+      default: ORDER_STATUS.CREATED
     },
     priority: {
       type: String,
-      enum: ["low", "normal", "high"],
-      default: "normal"
+      enum: Object.values(PRIORITY),
+      default: PRIORITY.NORMAL
     },
-    proof: {
-      type: Object,
-      default: null
-    }
+    proof: { type: Object, default: null }
   },
-  {
-    timestamps: true,
-    versionKey: false
-  }
+  { timestamps: true, versionKey: false }
 );
 
 const OrderModel = mongoose.model("Order", orderSchema);
-
 export default OrderModel;

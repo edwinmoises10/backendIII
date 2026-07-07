@@ -49,6 +49,16 @@ export const ERROR_DICTIONARY = {
         message: "Datos de entrega invalidos o incompletos"
     },
 
+    PRODUCT_NOT_FOUND: {
+        statusCode: 404,
+        message: "Producto no encontrado"
+    },
+
+    PRODUCT_VALIDATION_ERROR: {
+        statusCode: 400,
+        message: "Datos del producto invalidos o incompletos"
+    },
+
     DRIVER_NOT_FOUND: {
         statusCode: 404,
         message: "Conductor no encontrado"
