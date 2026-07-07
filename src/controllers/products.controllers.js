@@ -5,59 +5,49 @@ import {
   findIdAndUpdateService,
   deleteByIdService
 } from "../service/products.service.js";
-import { successResponse, errorResponse } from "../utils/apiResponse.js";
-import { ERROR_DICTIONARY } from "../utils/errorDictionary.js";
+import { successResponse } from "../utils/apiResponse.js";
 
-const handleError = (res, error) => {
-  const definition = ERROR_DICTIONARY[error.code] || ERROR_DICTIONARY.INTERNAL_SERVER_ERROR;
-  return errorResponse(res, {
-    statusCode: definition.statusCode,
-    error: error.code || "INTERNAL_SERVER_ERROR",
-    message: error.message
-  });
-};
-
-export const productsControllers = async (req, res) => {
+export const productsControllers = async (req, res, next) => {
   try {
     const products = await productsService();
     return successResponse(res, { message: "Lista de Productos", payload: products });
   } catch (error) {
-    return handleError(res, error);
+    next(error);
   }
 };
 
-export const productByIdControllers = async (req, res) => {
+export const productByIdControllers = async (req, res, next) => {
   try {
     const product = await productByIdService(req.params.pid);
     return successResponse(res, { message: "Producto obtenido por ID", payload: product });
   } catch (error) {
-    return handleError(res, error);
+    next(error);
   }
 };
 
-export const createProductControllers = async (req, res) => {
+export const createProductControllers = async (req, res, next) => {
   try {
     const newProduct = await createProductService(req.body);
     return successResponse(res, { statusCode: 201, message: "Producto creado correctamente", payload: newProduct });
   } catch (error) {
-    return handleError(res, error);
+    next(error);
   }
 };
 
-export const productIdAndUpdateControllers = async (req, res) => {
+export const productIdAndUpdateControllers = async (req, res, next) => {
   try {
-    const updatedProduct = await findIdAndUpdateService(req.params.pid, req.body);
-    return successResponse(res, { message: "Producto modificado por ID", payload: updatedProduct });
+    const updated = await findIdAndUpdateService(req.params.pid, req.body);
+    return successResponse(res, { message: "Producto modificado por ID", payload: updated });
   } catch (error) {
-    return handleError(res, error);
+    next(error);
   }
 };
 
-export const deleteByIdControllers = async (req, res) => {
+export const deleteByIdControllers = async (req, res, next) => {
   try {
-    const deletedProduct = await deleteByIdService(req.params.pid);
-    return successResponse(res, { message: "Producto eliminado", payload: deletedProduct });
+    const deleted = await deleteByIdService(req.params.pid);
+    return successResponse(res, { message: "Producto eliminado", payload: deleted });
   } catch (error) {
-    return handleError(res, error);
+    next(error);
   }
 };

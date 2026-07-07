@@ -6,6 +6,7 @@ import ordersRouter from "./routes/orders.router.js";
 import deliveriesRouter from "./routes/deliveries.router.js";
 import productsRouter from "./routes/products.router.js";
 import mocksRouter from "./routes/mock.router.js";
+import { errorMiddleware } from "./middlewares/error.middleware.js";
 
 const app = express();
 
@@ -30,5 +31,7 @@ app.use("/api/mocks", mocksRouter);
 app.use((req, res) => {
   res.status(404).json({ status: "error", message: "Ruta no encontrada" });
 });
+
+app.use(errorMiddleware);
 
 export default app;

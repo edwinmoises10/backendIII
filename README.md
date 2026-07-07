@@ -17,6 +17,9 @@ API REST para la gestión de una plataforma de logística y envíos. Construida 
 # 1. Instalar dependencias
 npm install
 
+# Ejecutar tests (no requiere base de datos)
+npm test
+
 # 2. Crear el archivo de variables de entorno
 cp .env.example .env
 

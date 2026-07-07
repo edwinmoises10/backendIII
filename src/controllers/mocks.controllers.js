@@ -3,21 +3,29 @@ import {
   generateUsersMockService,
   generateDriversMockService
 } from "../service/mocks.service.js";
-import { successResponse, errorResponse } from "../utils/apiResponse.js";
-import { ERROR_DICTIONARY } from "../utils/errorDictionary.js";
+import { successResponse } from "../utils/apiResponse.js";
+import { createError } from "../utils/apiResponse.js";
 
-const handleError = (res, error) => {
-  const definition = ERROR_DICTIONARY[error.code] || ERROR_DICTIONARY.INTERNAL_SERVER_ERROR;
-  return errorResponse(res, {
-    statusCode: definition.statusCode,
-    error: error.code || "INTERNAL_SERVER_ERROR",
-    message: error.message
-  });
+const parseCount = (value, fieldName, max = 500) => {
+  const count = parseInt(value);
+  if (isNaN(count) || count < 1 || count > max) {
+    throw createError("VALIDATION_ERROR", `'${fieldName}' debe ser un entero entre 1 y ${max}`);
+  }
+  return count;
 };
 
-export const populateMocksController = async (req, res) => {
+export const populateMocksController = async (req, res, next) => {
   try {
-    const counts = req.body;
+    const body = req.body || {};
+    const counts = {};
+    const fields = ["users", "drivers", "stores", "products", "orders", "deliveries"];
+
+    for (const field of fields) {
+      if (body[field] !== undefined) {
+        counts[field] = parseCount(body[field], field);
+      }
+    }
+
     const result = await populateMocksService(counts);
     return successResponse(res, {
       statusCode: 201,
@@ -25,13 +33,13 @@ export const populateMocksController = async (req, res) => {
       payload: result
     });
   } catch (error) {
-    return handleError(res, error);
+    next(error);
   }
 };
 
-export const generateUsersMockController = async (req, res) => {
+export const generateUsersMockController = async (req, res, next) => {
   try {
-    const count = parseInt(req.query.count) || 10;
+    const count = parseCount(req.query.count ?? 10, "count");
     const users = await generateUsersMockService(count);
     return successResponse(res, {
       statusCode: 201,
@@ -39,13 +47,13 @@ export const generateUsersMockController = async (req, res) => {
       payload: users
     });
   } catch (error) {
-    return handleError(res, error);
+    next(error);
   }
 };
 
-export const generateDriversMockController = async (req, res) => {
+export const generateDriversMockController = async (req, res, next) => {
   try {
-    const count = parseInt(req.query.count) || 5;
+    const count = parseCount(req.query.count ?? 5, "count");
     const drivers = await generateDriversMockService(count);
     return successResponse(res, {
       statusCode: 201,
@@ -53,6 +61,6 @@ export const generateDriversMockController = async (req, res) => {
       payload: drivers
     });
   } catch (error) {
-    return handleError(res, error);
+    next(error);
   }
 };

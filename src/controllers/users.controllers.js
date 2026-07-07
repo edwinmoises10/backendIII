@@ -1,77 +1,53 @@
-import { createUserService, deleteByIdService, findIdandUpdateService, userByIdService, userService } from "../service/users.service.js";
+import {
+  createUserService,
+  deleteByIdService,
+  findIdandUpdateService,
+  userByIdService,
+  userService
+} from "../service/users.service.js";
 import { successResponse } from "../utils/apiResponse.js";
 
-export const usersControllers = async (req, res) => {
-    try {
-        const data = await userService()
+export const usersControllers = async (req, res, next) => {
+  try {
+    const data = await userService();
+    return successResponse(res, { message: "Lista de Usuarios", payload: data });
+  } catch (error) {
+    next(error);
+  }
+};
 
-        return successResponse(res, {
-            message: "Lista de Usuarios",
-            payload: data
-        })
+export const userbyIdControllers = async (req, res, next) => {
+  try {
+    const user = await userByIdService(req.params.uid);
+    return successResponse(res, { message: "Usuario obtenido por ID", payload: user });
+  } catch (error) {
+    next(error);
+  }
+};
 
-        // res.json({ status: "success", payload: users });
-    } catch (error) {
-        res.status(error.statusCode).json({ status: "error", message: error.message })
-    }
-}
-export const userbyIdControllers = async (req, res) => {
+export const createUserControllers = async (req, res, next) => {
+  try {
+    const newUser = await createUserService(req.body);
+    return successResponse(res, { statusCode: 201, message: "Usuario creado correctamente", payload: newUser });
+  } catch (error) {
+    next(error);
+  }
+};
 
-    try {
-        const userId = await userByIdService(req.params.uid)
-        return successResponse(res, {
-            message: "Obtener Usuarios por ID",
-            payload: userId
-        })
-        // res.json({ status: "success", payload: userId });
+export const userIdandUpdateControllers = async (req, res, next) => {
+  try {
+    const updated = await findIdandUpdateService(req.params.uid, req.body);
+    return successResponse(res, { message: "Usuario modificado por ID", payload: updated });
+  } catch (error) {
+    next(error);
+  }
+};
 
-    } catch (err) {
-        res.status(err.statusCode).json({ status: "error", message: err.message })
-    }
-}
-
-export const createUserControllers = async (req, res) => {
-
-    try {
-        const newUser = await createUserService(req.body)
-        return successResponse(res, {
-            statusCode: 201,
-            message: "Usuario creado correctamente",
-            payload: newUser
-        })
-        // res.json({ status: "success", payload: newUser });
-
-    } catch (e) {
-        res.status(e.statusCode || 500).json({ status: "error", message: e.message })
-    }
-}
-
-export const userIdandUpdateControllers = async (req, res) => {
-
-    try {
-
-        const idandUpdate = await findIdandUpdateService(req.params.uid, req.body)
-        return successResponse(res, {
-            message: "Usuario modificado por ID",
-            payload: idandUpdate
-        })
-        // res.json({ status: "success", payload: idandUpdate });
-
-    } catch (error) {
-        res.status(error.statusCode || 500).json({ status: "error", message: error.message })
-    }
-
-}
-
-export const deleteByIdControllers = async (req, res) => {
-    try {
-        const deleteById = await deleteByIdService(req.params.uid)
-          return successResponse(res, {
-            message: "Usuarios Eliminado",
-            payload: deleteById
-        })
-        // res.json({ status: "success", payload: deleteById });
-    } catch (error) {
-        res.status(error.statusCode || 500).json({ status: "error", message: error.message })
-    }
-}
+export const deleteByIdControllers = async (req, res, next) => {
+  try {
+    const deleted = await deleteByIdService(req.params.uid);
+    return successResponse(res, { message: "Usuario eliminado", payload: deleted });
+  } catch (error) {
+    next(error);
+  }
+};
