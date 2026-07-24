@@ -2,6 +2,7 @@ import orderRepository from "../repository/order.repository.js";
 import userRepository from "../repository/user.repository.js";
 import storeRepository from "../repository/store.repository.js";
 import { createError } from "../utils/apiResponse.js";
+import logger from "../config/logger.js";
 
 export const ordersService = async () => {
   return await orderRepository.allOrders();
@@ -9,7 +10,10 @@ export const ordersService = async () => {
 
 export const orderByIdService = async (id) => {
   const order = await orderRepository.orderById(id);
-  if (!order) throw createError("ORDER_NOT_FOUND");
+  if (!order) {
+    logger.warning(`Pedido no encontrado: ${id}`);
+    throw createError("ORDER_NOT_FOUND");
+  }
   return order;
 };
 
@@ -44,19 +48,27 @@ export const createOrderService = async (body) => {
     total
   });
 
+  logger.info(`Pedido creado correctamente: ${newOrder._id}`);
+
   return newOrder;
 };
 
 export const updateOrderStatusService = async (id, status) => {
   const order = await orderRepository.orderById(id);
-  if (!order) throw createError("ORDER_NOT_FOUND");
+  if (!order) {
+    logger.warning(`Pedido no encontrado: ${id}`);
+    throw createError("ORDER_NOT_FOUND");
+  }
   const updatedOrder = await orderRepository.updateOrderStatus(id, status);
   return updatedOrder;
 };
 
 export const deleteByIdService = async (id) => {
   const order = await orderRepository.orderById(id);
-  if (!order) throw createError("ORDER_NOT_FOUND");
+  if (!order) {
+    logger.warning(`Pedido no encontrado: ${id}`);
+    throw createError("ORDER_NOT_FOUND");
+  }
   const deletedOrder = await orderRepository.deleteById(id);
   return deletedOrder;
 };

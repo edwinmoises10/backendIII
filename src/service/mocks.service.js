@@ -5,6 +5,7 @@ import { generateStoreMock } from "../mocks/stores.mock.js";
 import { generateProductMock } from "../mocks/products.mock.js";
 import { generateOrderMock } from "../mocks/orders.mock.js";
 import { generateDeliveryMock } from "../mocks/deliveries.mock.js";
+import logger from "../config/logger.js";
 
 export const populateMocksService = async ({
   users = 10,
@@ -38,7 +39,7 @@ export const populateMocksService = async ({
     generateDeliveryMock(orderIds, driverIds, deliveries)
   );
 
-  return {
+  const summary = {
     users: insertedUsers.length,
     drivers: insertedDrivers.length,
     stores: insertedStores.length,
@@ -46,12 +47,20 @@ export const populateMocksService = async ({
     orders: insertedOrders.length,
     deliveries: insertedDeliveries.length
   };
+
+  logger.info(`Datos mock generados: ${JSON.stringify(summary)}`);
+
+  return summary;
 };
 
 export const generateUsersMockService = async (count) => {
-  return await mockRepository.insertManyUsers(generateUserMock(count));
+  const inserted = await mockRepository.insertManyUsers(generateUserMock(count));
+  logger.info(`Datos mock generados: ${inserted.length} usuarios`);
+  return inserted;
 };
 
 export const generateDriversMockService = async (count) => {
-  return await mockRepository.insertManyUsers(generateDriverMock(count));
+  const inserted = await mockRepository.insertManyUsers(generateDriverMock(count));
+  logger.info(`Datos mock generados: ${inserted.length} repartidores`);
+  return inserted;
 };

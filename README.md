@@ -42,6 +42,7 @@ npm start
 | `NODE_ENV`     | Entorno de ejecución (opcional)    | `development`                             |
 
 > Si `MONGODB_URI` no está definida, la app lanza un error descriptivo y no arranca.
+> `NODE_ENV` también controla el nivel mínimo de logging (ver sección [Logging y monitoreo](#logging-y-monitoreo)).
 
 ---
 
@@ -85,6 +86,14 @@ npm start
 
 > **Nota:** `POST /api/mocks/populate` inserta las entidades en el orden correcto: primero usuarios y repartidores, luego comercios (que necesitan un owner), luego productos y pedidos, y finalmente entregas (que referencian pedidos). Todos los datos se persisten en MongoDB.
 
+### Endpoint de prueba del logger
+
+| Método | Ruta                | Descripción                                                        |
+|--------|---------------------|---------------------------------------------------------------------|
+| GET    | `/api/logger/test`  | Genera un log de prueba en cada nivel (debug, http, info, warning, error, fatal) |
+
+> No representa una funcionalidad de negocio: es una herramienta interna para verificar que el logger está bien configurado (consola, archivo de errores y archivos rotados).
+
 ---
 
 ## Arquitectura por capas
@@ -93,7 +102,8 @@ npm start
 src/
 ├── config/
 │   ├── env.config.js       # Validación y exportación de variables de entorno
-│   └── db.js               # Conexión a MongoDB
+│   ├── db.js               # Conexión a MongoDB
+│   └── logger.js           # Configuración centralizada de Winston (niveles, formato, transports)
 ├── constants/
 │   └── index.js            # Objetos congelados con valores del dominio
 ├── models/                 # Esquemas Mongoose (solo estructura de datos)
@@ -102,7 +112,8 @@ src/
 ├── controllers/            # Manejo de req/res HTTP
 ├── routes/                 # Definición de rutas (solo conectan path con controller)
 ├── middlewares/
-│   └── error.middleware.js # Middleware global de errores de Express
+│   ├── error.middleware.js     # Middleware global de errores de Express (loguea con Winston)
+│   └── httpLogger.middleware.js # Loguea cada request (nivel http)
 ├── mocks/                  # Generadores de datos falsos con faker
 ├── utils/
 │   ├── CustomError.js      # Clase de error tipado
@@ -113,6 +124,8 @@ src/
     ├── mocks.validation.test.js
     └── error.middleware.test.js
 ```
+
+> Los archivos de log generados en tiempo de ejecución se guardan en `logs/` (carpeta ignorada por Git, ver [Logging y monitoreo](#logging-y-monitoreo)).
 
 ### Flujo de dependencias
 
@@ -153,6 +166,58 @@ El sistema usa una clase `CustomError` que encapsula `code`, `statusCode` y `mes
   "message": "Producto no encontrado"
 }
 ```
+
+---
+
+## Logging y monitoreo
+
+El proyecto reemplaza el uso de `console.log()` por un logger centralizado con **[Winston](https://github.com/winstonjs/winston)**, configurado en `src/config/logger.js` y reutilizado en toda la aplicación (nunca se repite configuración en otros archivos).
+
+### Niveles de log
+
+De más a menos crítico:
+
+| Nivel     | Uso esperado                                                             |
+|-----------|---------------------------------------------------------------------------|
+| `fatal`   | Fallas críticas: no se pudo conectar a MongoDB o el servidor no pudo arrancar |
+| `error`   | Errores inesperados del servidor (errores 5xx, excepciones no controladas) |
+| `warning` | Errores de negocio esperados (4xx): validaciones, recursos no encontrados, rutas inexistentes |
+| `info`    | Eventos relevantes del ciclo de vida: servidor iniciado, conexión a MongoDB, pedido creado, datos mock generados |
+| `http`    | Registro de cada request entrante (método, ruta, status code, duración) |
+| `debug`   | Información detallada solo útil en desarrollo                            |
+
+### Comportamiento según el entorno
+
+El nivel mínimo que se registra depende de `NODE_ENV` (ver [`env.config.js`](./src/config/env.config.js)):
+
+- **`development`** (default): se registra desde `debug` hacia arriba (todo).
+- **`production`**: se registra desde `info` hacia arriba (`info`, `warning`, `error`, `fatal`), omitiendo `http` y `debug` para no saturar los archivos.
+
+### Salidas configuradas
+
+- **Consola**: todos los niveles activos según el entorno, con colores para facilitar la lectura durante el desarrollo.
+- **Archivo de errores** (`logs/error-YYYY-MM-DD.log`): solo `fatal` y `error`, para poder auditar fallas graves después de que ocurrieron.
+- **Archivo combinado** (`logs/combined-YYYY-MM-DD.log`): todos los niveles activos según el entorno.
+
+### Rotación de archivos
+
+Se usa **[winston-daily-rotate-file](https://github.com/winstonjs/winston-daily-rotate-file)**: cada día se genera un archivo nuevo (`%DATE%` en el nombre) y los archivos con más de **14 días** se eliminan automáticamente, evitando que los logs crezcan sin control.
+
+### Cómo probar el logger
+
+```bash
+curl http://localhost:8080/api/logger/test
+```
+
+Esto genera un log de prueba en cada uno de los 6 niveles. Podés verificar que aparecen:
+
+- En la consola (todos los niveles activos según el entorno).
+- En `logs/error-<fecha>.log` (solo `fatal` y `error`).
+- En `logs/combined-<fecha>.log` (todos los niveles activos).
+
+### Archivos ignorados en Git
+
+La carpeta `logs/` está en `.gitignore`: los archivos que genera la aplicación (rotados o no) nunca se suben al repositorio, solo queda documentada su ubicación acá en el README.
 
 ## Tests
 

@@ -6,12 +6,16 @@ import ordersRouter from "./routes/orders.router.js";
 import deliveriesRouter from "./routes/deliveries.router.js";
 import productsRouter from "./routes/products.router.js";
 import mocksRouter from "./routes/mock.router.js";
+import loggerRouter from "./routes/logger.router.js";
 import { errorMiddleware } from "./middlewares/error.middleware.js";
+import { httpLoggerMiddleware } from "./middlewares/httpLogger.middleware.js";
+import logger from "./config/logger.js";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(httpLoggerMiddleware);
 
 app.get("/", (req, res) => {
   res.json({ status: "success", message: "ShipNow API" });
@@ -27,8 +31,10 @@ app.use("/api/orders", ordersRouter);
 app.use("/api/deliveries", deliveriesRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/mocks", mocksRouter);
+app.use("/api/logger", loggerRouter);
 
 app.use((req, res) => {
+  logger.warning(`Ruta no encontrada: ${req.method} ${req.originalUrl}`);
   res.status(404).json({ status: "error", message: "Ruta no encontrada" });
 });
 

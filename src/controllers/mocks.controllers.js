@@ -5,10 +5,12 @@ import {
 } from "../service/mocks.service.js";
 import { successResponse } from "../utils/apiResponse.js";
 import { createError } from "../utils/apiResponse.js";
+import logger from "../config/logger.js";
 
 const parseCount = (value, fieldName, max = 500) => {
   const count = parseInt(value);
   if (isNaN(count) || count < 1 || count > max) {
+    logger.warning(`Cantidad inválida enviada al endpoint de mocks para '${fieldName}': ${value}`);
     throw createError("VALIDATION_ERROR", `'${fieldName}' debe ser un entero entre 1 y ${max}`);
   }
   return count;
